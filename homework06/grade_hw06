@@ -1,0 +1,17 @@
+directory structure	1
+file name		1
+compiles		1
+subs 1			0
+cae 1			0
+rot 1			0
+rk 1			1
+vig 1			1
+subs 2			0
+cae 2			0
+rot 2			0
+rk 2			1
+vig 2			1
+==============================
+Final	28
+
+The code only decrypts the first character on some ciphers

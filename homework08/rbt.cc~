@@ -1,0 +1,435 @@
+#include "rbt.h"
+
+// ---------------------------------------
+// Node class
+// Default constructor
+RBTNode::RBTNode() : Node() {
+    color = BLACK;
+}
+
+// Constructor
+RBTNode::RBTNode(int in) : Node(in) {
+    color = BLACK;
+}
+// Destructor
+RBTNode::~RBTNode() {
+}
+
+void RBTNode::add_color(Node_color c)
+{
+  color = c;
+}
+
+void RBTNode::print_color(ostream& to)
+{
+    if(color == RED) {
+        to << "Red";
+    } else if (color == BLACK) {
+        to << "Black";
+    } else {
+        cerr << "ERR: invalid color" << endl;
+    }
+}
+void RBTNode::print_info(ostream& to)
+{
+    to << get_key() << " ";
+    print_color(to);
+}
+
+Node_color RBTNode::get_color()
+{
+  return color;
+}
+// ---------------------------------------
+
+
+// ---------------------------------------
+// RBT class
+// Constructor and destructor
+RBT::RBT() : BST()
+{
+  sentinel = new RBTNode(-1);
+  root = sentinel;
+}
+RBT::~RBT()
+{
+    // re-using BST's inorder_free
+    inorder_free(root, sentinel);
+    // This makes sure that root is set to nullptr, so that the parent class's
+    // constructor does not try to free the tree again
+    root = nullptr;
+    delete sentinel; 
+}
+
+// Functions that are basically wrappers for the parent class functions
+// minimum key in the BST
+RBTNode* RBT::tree_min()
+{
+    // return (RBTNode*) get_min(root);
+    // return (RBTNode*) BST::tree_min();
+    return (RBTNode*) BST::get_min(root, sentinel);
+}
+// maximum key in the BST
+RBTNode* RBT::tree_max()
+{
+    // return (RBTNode*) get_max(root);
+    // return (RBTNode*) BST:cd:tree_max();
+    return (RBTNode*) BST::get_max(root, sentinel);
+}
+
+// Get successor of the given node
+RBTNode* RBT::get_succ(RBTNode* in)
+{
+  return (RBTNode*) BST::get_succ((Node*) in, sentinel);
+}
+
+// Get predecessor of the given node
+RBTNode* RBT::get_pred(RBTNode* in)
+{
+  return (RBTNode*) BST::get_pred((Node*) in, sentinel);
+}
+
+// Search the tree for a given key
+RBTNode* RBT::tree_search(int search_key)
+{
+  return (RBTNode*) BST::tree_search(search_key, sentinel);
+}
+
+void RBT::walk(ostream& to)
+{
+  BST::inorder_walk(root, to, sentinel);
+}
+
+
+
+// New functions to RBT
+// right rotate
+void RBT::right_rotate(RBTNode* y)
+{
+    /* TODO */
+    RBTNode* lchild=dynamic_cast<RBTNode*>(y->get_left());
+    RBTNode* grchild= dynamic_cast<RBTNode*>(y->get_right());
+    RBTNode* p= dynamic_cast<RBTNode*>(y->get_parent());
+    y->add_left(grchild);
+ if(grchild != sentinel){
+    grchild->add_parent(y);
+ } 
+ lchild->add_parent(p);
+ if(p== sentinel){
+    root=lchild;
+ }
+ else if(y== p->get_right()){
+    p->add_right(lchild);
+ }
+ else{
+    p->add_left(lchild);
+ }
+ lchild->add_right(y);
+ y->add_parent(lchild);
+
+}
+// Left rotate
+void RBT::left_rotate(RBTNode* x)
+{
+    /* LEFT-ROTATE(current):
+rChild = current's right child
+glChild = rChild's left child
+parent = current's parent
+set current's rChild = glChild
+if(glchild == sentinal) {
+set glChild's Parent = current
+}
+set rChild's parent = parent
+if(parent == sentinal) {
+root = rChild
+} else if(current == parent's left child) {
+set parent's left child = rChild
+} else {
+set parent's right child = rChild
+}
+set rChild's left child = current
+set current's parent = rChild*/
+    /* TODO */
+  
+	RBTNode* rchild=dynamic_cast<RBTNode*>(x->get_right());      
+   RBTNode* glchild= dynamic_cast<RBTNode*>(rchild->get_left());
+  RBTNode* p= dynamic_cast<RBTNode*>(x->get_parent());
+  x->add_right(glchild);
+ if(glchild != sentinel){
+    glchild->add_parent(x);
+ } 
+ rchild->add_parent(p);
+ if(p== sentinel){
+    root=rchild;
+ }
+ else if(x== p->get_left()){
+    p->add_left(rchild);
+ }
+ else{
+    p->add_right(rchild);
+ }
+ rchild->add_left(x);
+ x->add_parent(rchild);
+}
+void RBT::rb_insert_fixup(RBTNode* in)
+{
+    /* TODO */
+	cout<<"CALLLED"<<endl;
+ RBTNode* parent = dynamic_cast<RBTNode*>(in->get_parent());
+    RBTNode* gParent = dynamic_cast<RBTNode*>(parent->get_parent());
+
+    while (parent->get_color() == RED ) {
+        parent = dynamic_cast<RBTNode*>(in->get_parent());
+        gParent = dynamic_cast<RBTNode*>(parent->get_parent());
+
+        if (parent == gParent->get_left()) {
+            RBTNode* uncle = dynamic_cast<RBTNode*>(gParent->get_right());
+
+            if (uncle->get_color() == RED) { // case 1
+                cout<<"CASE1A"<<endl;
+		    parent->add_color(BLACK);
+
+                uncle->add_color(BLACK);
+                gParent->add_color(RED);
+                in = gParent;  // Update in
+            } 
+	    else {
+                if (in == parent->get_right()) {
+			cout<<"case2"<<endl;
+                    in = parent;
+                    left_rotate(in);
+                    parent = dynamic_cast<RBTNode*>(in->get_parent());
+                    gParent = dynamic_cast<RBTNode*>(parent->get_parent());
+                }
+                parent->add_color(BLACK);
+                gParent->add_color(RED);
+                right_rotate(gParent);
+            }
+        } else {
+            RBTNode* uncle = dynamic_cast<RBTNode*>(gParent->get_left());
+
+            if (uncle->get_color() == RED) { // case 1
+		cout<< "case1b"<<endl;
+                parent->add_color(BLACK);
+                uncle->add_color(BLACK);
+                gParent->add_color(RED);
+                in = gParent;  // Update in
+            } else {
+                if (in == parent->get_left()) {
+			cout<<"case2b"<<endl;
+                    in = parent;
+                    right_rotate(in);
+                    parent = dynamic_cast<RBTNode*>(in->get_parent());
+                    gParent = dynamic_cast<RBTNode*>(parent->get_parent());
+                }
+                parent->add_color(BLACK);
+                gParent->add_color(RED);
+                left_rotate(gParent);
+            }
+     
+     	}
+	
+    }
+   dynamic_cast<RBTNode*>(this->root)->add_color(BLACK);
+}
+
+void RBT::rb_insert_node(RBTNode* in)
+{
+    /* TODO */
+    //insert_node(in,nullptr);
+    RBTNode* y = dynamic_cast<RBTNode*>(sentinel);
+	RBTNode* x = dynamic_cast<RBTNode*>(this-> root);
+
+	// Traverse BST to figure out where to insert
+	while (x != sentinel) {
+		y = x;
+		if (in->get_key() < x->get_key()) {
+			x =dynamic_cast<RBTNode*>( x->get_left());
+		}
+		else {
+			x = dynamic_cast<RBTNode*>(x->get_right());
+		}
+	}
+
+	// Insert the node
+	in->add_parent(y);
+	if (y == sentinel) {
+		root = in;
+	}
+	else if (in->get_key() < y->get_key()) {
+		y->add_left(in);
+	}
+	else {
+		y->add_right(in);
+	}
+
+    in-> add_right(sentinel);
+    in-> add_left(sentinel);
+    in->add_color(RED);
+
+    if(in== nullptr){
+        in->add_parent(sentinel);
+    }
+   rb_insert_fixup(in);
+}
+void RBT::rb_delete_fixup(RBTNode* in)
+{
+    /* TODO */
+    RBTNode* p=nullptr;
+     RBTNode* sib=nullptr;
+     RBTNode* sibr_child=nullptr;
+     RBTNode* sibl_child=nullptr;
+
+    
+   while(in!= root and in->get_color()==BLACK){
+    p=dynamic_cast<RBTNode*>(in->get_parent());
+    if(in== p->get_left()){
+        sib=dynamic_cast<RBTNode*>(p->get_left());
+        if(sib->get_color()==RED){
+            sib->add_color(BLACK);
+            p->add_color(RED);
+            left_rotate(p);
+            p= dynamic_cast<RBTNode*>(in->get_parent());
+            sib=dynamic_cast<RBTNode*>(p->get_right());
+
+        }
+        sibl_child=dynamic_cast<RBTNode*>(sib->get_left());
+        sibr_child=dynamic_cast<RBTNode*>(sib->get_right());
+        
+        if(sibr_child->get_color() and sibl_child->get_color()==BLACK)
+         {
+            sib->add_color(RED);
+            in=p;
+            }
+        else{
+            if(sibr_child->get_color()==BLACK){
+                sibl_child->add_color(BLACK);
+                sib->add_color(RED);
+                right_rotate(sib);
+                p=dynamic_cast<RBTNode*>(in->get_parent());
+                sib=dynamic_cast<RBTNode*>(p->get_right());
+            }
+            sib->add_color(p->get_color());
+            p->add_color(BLACK);
+            sibr_child->add_color(BLACK);
+            left_rotate(p);
+          in= static_cast<RBTNode*>(this->root);
+            }
+
+        }
+    
+    else{
+	p=dynamic_cast<RBTNode*>(in->get_parent());
+         sib=dynamic_cast<RBTNode*>(p->get_left());
+    if(in== p->get_right()){
+        sib=dynamic_cast<RBTNode*>(p->get_right());
+        if(sib->get_color()==RED){
+            sib->add_color(BLACK);
+            p->add_color(RED);
+            right_rotate(p);
+            p= dynamic_cast<RBTNode*>(in->get_parent());
+            sib=dynamic_cast<RBTNode*>(p->get_left());
+
+        }
+        sibl_child=dynamic_cast<RBTNode*>(sib->get_right());
+        sibr_child=dynamic_cast<RBTNode*>(sib->get_left());
+        
+        if(sibr_child->get_color() and sibl_child->get_color()==BLACK) {
+            sib->add_color(RED);
+            in=p;
+    }
+        else{
+            if(sibl_child->get_color()==BLACK){
+                sibr_child->add_color(BLACK);
+                sib->add_color(RED);
+                left_rotate(sib);
+                p=dynamic_cast<RBTNode*>(in->get_parent());
+                sib=dynamic_cast<RBTNode*>(p->get_left());
+            }
+            sib->add_color(p->get_color());
+            p->add_color(BLACK);
+            sibl_child->add_color(BLACK);
+            right_rotate(p);
+            in= dynamic_cast<RBTNode*>(root);
+
+        }
+
+    }
+    
+
+   }
+
+
+}
+in->add_color(BLACK);
+}
+
+void RBT::rb_delete_node(RBTNode* out)
+{
+    /* TODO */
+
+RBTNode* curr=nullptr;
+    RBTNode* child=nullptr;
+    Node_color orig= out->get_color();
+    if(out->get_left() or out->get_right()==sentinel){
+         curr=out;
+   
+    }
+     else{
+       curr=get_succ(out);
+        }
+    RBTNode* p= dynamic_cast<RBTNode*>(out->get_parent());
+    if(curr->get_left()!=sentinel){
+       child= dynamic_cast<RBTNode*>(curr->get_left());
+    }
+    else if (curr->get_right() != sentinel) {
+    child = dynamic_cast<RBTNode*>(curr->get_right());
+		    }
+    else{
+        child = nullptr;
+    }
+    child->add_parent(p);
+    if(p== sentinel){
+        root= child;
+    }
+    else if( curr== p->get_left()){
+        p->add_left(child);
+    }
+    else{
+        p->add_right(child);
+    }
+    if(curr!= out){
+        curr->add_parent(out->get_parent());
+    
+        if (curr->get_parent()== sentinel){
+        root=curr;
+    }
+        else{
+        if(out== out->get_parent()->get_left()){
+            p->add_left(curr);
+        }
+    else{
+            p->add_right(curr);
+        }
+    }
+    RBTNode* lchild= dynamic_cast<RBTNode*>(out->get_left());
+    RBTNode* rchild= dynamic_cast<RBTNode*>(out->get_right());
+    curr->add_left(lchild);
+curr->add_right(rchild);
+	if (lchild != sentinel) {
+    	lchild->add_parent(curr);
+		}
+	if (rchild != sentinel) {
+    		rchild->add_parent(curr);
+				}
+curr->add_color(out->get_color());
+
+}
+delete out;
+if(orig==BLACK){
+    rb_delete_fixup(child);
+}
+}
+
+
+// ---------------------------------------
